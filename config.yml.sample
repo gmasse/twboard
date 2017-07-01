@@ -1,0 +1,18 @@
+twitter:
+    consumer_key: abcdefg12345
+    consumer_secret: abcdefg12345
+    access_token: abcdefg12345
+    access_token_secret: abcdefg12345
+usernames:
+    - GegAtOvh
+    - LauAtOvh
+    - o_erreip
+    - gioindahouz
+    - FluAtOvh
+    - LauAtOvh
+    - DavidRamblewski
+    - maillot
+telegram:
+    token: abcdefg12345
+warp10:
+    token: abcdefg12345
