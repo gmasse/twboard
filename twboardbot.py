@@ -30,7 +30,7 @@ def twstat(weeks_ago= 3):
         for (username, count) in unsorted_list:
             stats[username] = { 'now': count }
 
-    query = { "start": str(hours_ago)+"h-ago", "end": str(hours_ago-6)+"h-ago", "queries": [ { "metric": "followers_count_total", "aggregator": "max", "tags": { "username": "*" }} ] }
+    query = { "start": str(hours_ago)+"h-ago", "end": str(hours_ago-24)+"h-ago", "queries": [ { "metric": "followers_count_total", "aggregator": "max", "tags": { "username": "*" }} ] }
     url = cfg['metrics']['url']+'/api/query'
     resp = requests.post(url, json=query, auth=('twboardbot', cfg['metrics']['read_token']))
 
