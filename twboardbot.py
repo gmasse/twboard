@@ -64,6 +64,49 @@ def render_text(stats,weeks_ago=3):
     return output
 
 
+def render_image(stats,weeks_ago=3):
+    from PIL import ImageFont, ImageDraw, Image
+
+    key=u'\u0394-'+text(weeks_ago)+'w'
+    unsorted_list = [(item[0], item[1][key]) for item in stats.items()]
+    sorted_list = sorted(unsorted_list, key=itemgetter(1), reverse=True)
+
+    img_size = (512, len(sorted_list)*40+40+10+10)
+    # make a blank image for the text
+    image = Image.new('RGB', img_size, color='white')
+
+    # get a font
+    # ex: https://github.com/google/fonts/blob/master/ofl/lato/Lato-Regular.ttf?raw=true
+    font = ImageFont.truetype('Lato-Regular.ttf', 30)
+
+    # get a drawing context
+    draw = ImageDraw.Draw(image)
+
+    col = (10, 350, 490)
+    line = 10
+    # draw text
+    draw.text((col[0],line), '@username', font=font, fill='black')
+    (width, height) = draw.textsize(key, font=font)
+    draw.text((col[1]-width,line), key, font=font, fill='black')
+    (width, height) = draw.textsize('now', font=font)
+    draw.text((col[2]-width,line), 'now', font=font, fill='black')
+
+    for (username, value) in sorted_list:
+        line += 40
+        # draw text
+        draw.text((col[0],line), username, font=font, fill='black')
+        (width, height) = draw.textsize(str(stats[username][key]), font=font)
+        draw.text((col[1]-width,line), str(stats[username][key]), font=font, fill='black')
+        (width, height) = draw.textsize(str(stats[username]['now']), font=font)
+        draw.text((col[2]-width,line), str(stats[username]['now']), font=font, fill='black')
+
+    output = BytesIO()
+    image.save(output, 'PNG')
+    output.seek(0)
+
+    return output
+
+
 async def handle(msg):
     content_type, chat_type, chat_id = telepot.glance(msg)
     print(content_type, chat_type, chat_id)
@@ -73,13 +116,16 @@ async def handle(msg):
 
     command = msg['text'].lower()
 
-    if command == '/followers':
-        output = '<pre>'
+    if command == '/followers_txt':
+        output = u'<pre>'
         output += render_text(twstat(3), 3)
-        output += '</pre>'
+        output += u'</pre>'
         print(output)
-
         await bot.sendMessage(chat_id, output, parse_mode='HTML')
+
+    if command == '/followers':
+        output = render_image(twstat(3), 3)
+        await bot.sendPhoto(chat_id, ('z.png', output))
 
 
 def main():
