@@ -68,38 +68,45 @@ def render_image(stats,weeks_ago=3):
     from PIL import ImageFont, ImageDraw, Image
     from io import BytesIO
 
+    FSIZE = 30
+    INTERLINE = int(FSIZE/3)
+    WIDTH = 512
+
     key=u'\u0394-'+text(weeks_ago)+'w'
     unsorted_list = [(item[0], item[1][key]) for item in stats.items()]
     sorted_list = sorted(unsorted_list, key=itemgetter(1), reverse=True)
 
-    img_size = (512, len(sorted_list)*40+40+10+10)
+    img_size = (WIDTH, (len(sorted_list)+2)*(FSIZE+INTERLINE)+2*INTERLINE)
     # make a blank image for the text
     image = Image.new('RGB', img_size, color='white')
 
     # get a font
     # ex: https://github.com/google/fonts/blob/master/ofl/lato/Lato-Regular.ttf?raw=true
-    font = ImageFont.truetype('Lato-Regular.ttf', 30)
+    font = ImageFont.truetype('Lato-Regular.ttf', FSIZE)
 
     # get a drawing context
     draw = ImageDraw.Draw(image)
 
-    col = (10, 350, 490)
-    line = 10
-    # draw text
+    col = (INTERLINE, int(WIDTH*0.7), WIDTH-INTERLINE)
+    line = INTERLINE
+    # draw table headers
     draw.text((col[0],line), '@username', font=font, fill='black')
     (width, height) = draw.textsize(key, font=font)
     draw.text((col[1]-width,line), key, font=font, fill='black')
     (width, height) = draw.textsize('now', font=font)
     draw.text((col[2]-width,line), 'now', font=font, fill='black')
 
+    line += FSIZE + INTERLINE
+    draw.line((INTERLINE,line,WIDTH-INTERLINE,line), fill='black', width=1)
+
     for (username, value) in sorted_list:
-        line += 40
         # draw text
         draw.text((col[0],line), username, font=font, fill='black')
         (width, height) = draw.textsize(str(stats[username][key]), font=font)
         draw.text((col[1]-width,line), str(stats[username][key]), font=font, fill='black')
         (width, height) = draw.textsize(str(stats[username]['now']), font=font)
         draw.text((col[2]-width,line), str(stats[username]['now']), font=font, fill='black')
+        line += FSIZE + INTERLINE
 
     output = BytesIO()
     image.save(output, 'PNG')
