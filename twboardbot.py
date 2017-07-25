@@ -66,6 +66,7 @@ def render_text(stats,weeks_ago=3):
 
 def render_image(stats,weeks_ago=3):
     from PIL import ImageFont, ImageDraw, Image
+    from io import BytesIO
 
     key=u'\u0394-'+text(weeks_ago)+'w'
     unsorted_list = [(item[0], item[1][key]) for item in stats.items()]
