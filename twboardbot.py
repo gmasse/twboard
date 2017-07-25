@@ -9,10 +9,10 @@ import requests
 import yaml
 import json
 from operator import itemgetter
+from builtins import str as text
 
 with open("config.yml", 'r') as ymlfile:
     cfg = yaml.load(ymlfile)
-
 
 def twstat(weeks_ago= 3):
     hours_ago = 24*7*weeks_ago
@@ -43,19 +43,23 @@ def twstat(weeks_ago= 3):
             dps = item['dps']
             first_timestamp = sorted(dps)[0]
             stats[username][str(weeks_ago)+'w-ago'] = int(float(dps[first_timestamp]))
-            stats[username]['Δ-'+str(weeks_ago)+'w'] = stats[username]['now'] - stats[username]['3w-ago']
+            stats[username][u'\u0394-'+text(weeks_ago)+'w'] = stats[username]['now'] - stats[username]['3w-ago']
 
-    output = ''
-    key='Δ-'+str(weeks_ago)+'w'
+    return stats
+
+
+def render_text(stats,weeks_ago=3):
+    output = u''
+    key=u'\u0394-'+text(weeks_ago)+'w'
     unsorted_list = [(item[0], item[1][key]) for item in stats.items()]
     sorted_list = sorted(unsorted_list, key=itemgetter(1), reverse=True)
-    output += '{:<15}{:>4}{:>5}'.format('@username', key, 'now')
-    output += "\n"
-    output += '-'*24
-    output += "\n"
+    output += u'{:<15}{:>4}{:>5}'.format('@username', key, 'now')
+    output += u"\n"
+    output += u'-'*24
+    output += u"\n"
     for (username, value) in sorted_list:
-        output += '{:<15}{:>4}{:>5}'.format(username, stats[username][key], stats[username]['now'])
-        output += "\n"
+        output += u'{:<15}{:>4}{:>5}'.format(username, stats[username][key], stats[username]['now'])
+        output += u"\n"
 
     return output
 
@@ -71,7 +75,7 @@ async def handle(msg):
 
     if command == '/followers':
         output = '<pre>'
-        output += twstat(3)
+        output += render_text(twstat(3), 3)
         output += '</pre>'
         print(output)
 
