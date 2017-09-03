@@ -30,7 +30,7 @@ def twstat(weeks_ago= 3):
         for (username, count) in unsorted_list:
             stats[username] = { 'now': count }
 
-    query = { "start": str(hours_ago)+"h-ago", "end": str(hours_ago-24)+"h-ago", "queries": [ { "metric": "followers_count_total", "aggregator": "max", "tags": { "username": "*" }} ] }
+    query = { "start": text(hours_ago)+"h-ago", "end": text(hours_ago-24)+"h-ago", "queries": [ { "metric": "followers_count_total", "aggregator": "max", "tags": { "username": "*" }} ] }
     url = cfg['metrics']['url']+'/api/query'
     resp = requests.post(url, json=query, auth=('twboardbot', cfg['metrics']['read_token']))
 
@@ -42,8 +42,13 @@ def twstat(weeks_ago= 3):
             username = item['tags']['username']
             dps = item['dps']
             first_timestamp = sorted(dps)[0]
-            stats[username][str(weeks_ago)+'w-ago'] = int(float(dps[first_timestamp]))
-            stats[username][u'\u0394-'+text(weeks_ago)+'w'] = stats[username]['now'] - stats[username]['3w-ago']
+            stats[username][text(weeks_ago)+'w-ago'] = int(float(dps[first_timestamp]))
+            stats[username][u'\u0394-'+text(weeks_ago)+'w'] = stats[username]['now'] - stats[username][text(weeks_ago)+'w-ago']
+
+    for (username, value) in stats.items():
+        if text(weeks_ago)+'w-ago' not in value:
+            stats[username][text(weeks_ago)+'w-ago'] = None
+            stats[username][u'\u0394-'+text(weeks_ago)+'w'] = -999999999
 
     return stats
 
@@ -58,7 +63,10 @@ def render_text(stats,weeks_ago=3):
     output += u'-'*24
     output += u"\n"
     for (username, value) in sorted_list:
-        output += u'{:<15}{:>4}{:>5}'.format(username, stats[username][key], stats[username]['now'])
+        delta = stats[username][key]
+        if stats[username][text(weeks_ago)+'w-ago'] is None:
+            delta = ''
+        output += u'{:<15}{:>4}{:>5}'.format(username, delta, stats[username]['now'])
         output += u"\n"
 
     return output
@@ -102,10 +110,11 @@ def render_image(stats,weeks_ago=3):
     for (username, value) in sorted_list:
         # draw text
         draw.text((col[0],line), username, font=font, fill='black')
-        (width, height) = draw.textsize(str(stats[username][key]), font=font)
-        draw.text((col[1]-width,line), str(stats[username][key]), font=font, fill='black')
-        (width, height) = draw.textsize(str(stats[username]['now']), font=font)
-        draw.text((col[2]-width,line), str(stats[username]['now']), font=font, fill='black')
+        if stats[username][text(weeks_ago)+'w-ago'] is not None:
+            (width, height) = draw.textsize(text(stats[username][key]), font=font)
+            draw.text((col[1]-width,line), text(stats[username][key]), font=font, fill='black')
+        (width, height) = draw.textsize(text(stats[username]['now']), font=font)
+        draw.text((col[2]-width,line), text(stats[username]['now']), font=font, fill='black')
         line += FSIZE + INTERLINE
 
     output = BytesIO()
